@@ -1,13 +1,13 @@
 # Errorutils
 
-Errorutils is a reusable optional functions error framework that extends the logrus package. It provides a simple and flexible way to create custom error types with additional information.
+Errorutils is a reusable optional functions error framework that extends the logrus package. It provides a simple and flexible way to instantiate custom error types with additional information.
 
 ## Installation
 
 To use Errorutils in your Go project, you can install it using `go get`:
 
 ```
-go get github.com/user/errorutils
+> go get github.com/TgenNorth/errorutils
 ```
 
 ## Usage
@@ -15,32 +15,32 @@ go get github.com/user/errorutils
 To use Errorutils in your project, you first need to import it:
 
 ```go
-import "github.com/user/errorutils"
+package myPackage
+import "github.com/TGenNorth/errorutils"
 ```
 
-### Creating a new error
+### Creating a new error with Line references
 
-To create a new error with additional information, you can use the `New` function. This function takes an error object as its first argument and an optional variadic argument of type `Option`. The `Option` type is a function type that takes a pointer to a `Details` type as its argument and modifies it in some way.
+To create a new error with additional information, you can use the `New` function. This function takes an error and functions that match the type `Option` that takes in the informational values.
 
 ```go
 err := errors.New("something went wrong")
 details := errorutils.New(err, errorutils.WithExitCode(1), errorutils.WithLineRef("OKP8PK1CosD"))
 ```
 
-Customarily `WithLineRef` option sets the line reference as a random string to avoid outdated.
+Errorutils provides a way to add line references to error values. Line references are useful for debugging and can be used to indicate the location in the code where the error occurred. Ideally, unique identifiers such as random strings are better to avoid outdating the reference.
 
 ### Creating a new error report
 
-Errorutils also provides a succinct syntax for creating new error reports. This is recommended for errors that could potentially be bugs.
+Errorutils also provides a succinct syntax for creating new error reports without having to use a premade error values.
 
 ```go
 details := errorutils.NewReport("something went wrong", "OKP8PK1CosD")
 ```
 
-
 ### Handler functions and safe closer
 
-Errorutils also provides handler functions that can be used to handle errors in a consistent way. Additionally, a safe close funtion for \*os.file that visibilizes closing errors.
+Errorutils also provides handler functions that can be used to deal with errors in a consistent way. Additionally, the package offers a safe close function for \*os.file that visibilizes closing errors.
 
 The following example based on TGenNorth/kmare/database, stashes the result if writing fails.
 
@@ -54,11 +54,10 @@ func x() {
 
     {
         defer errorutils.SafeClose(seqFile, &err)
-            //bufio writer
-            seqWriter := bufio.NewWriter(seqFile)
-            // write the formattedBytes to the indexFile
-            _, err = seqWriter.Write(formattedBytes)
-            indexWriter.Flush()
+        //bufio writer
+        seqWriter := bufio.NewWriter(seqFile)
+        _, err = seqWriter.Write(formattedBytes)
+        indexWriter.Flush()
     }
 handleError:
     // if file cannot be created or there is a writting error, stash the sequences
@@ -84,15 +83,6 @@ handleError:
 }
 ```
 
-
-### Line references
-
-Errorutils provides a way to add line references to error objects. Line references are useful for debugging and can be used to indicate the location in the code where the error occurred. Ideally, unique identifiers such as random strings are better to avoid outdating the reference. To add a line reference to an error object, you can use the `WithLineRef` option:
-
-```go
-err := errors.New("something went wrong")
-details := errorutils.New(err, errorutils.WithLineRef("IBddGNCgOyS"))
-```
 
 ## License
 
