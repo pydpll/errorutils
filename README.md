@@ -28,7 +28,7 @@ err := errors.New("something went wrong")
 details := errorutils.New(err, errorutils.WithExitCode(1), errorutils.WithLineRef("OKP8PK1CosD"))
 ```
 
-Errorutils provides a way to add line references to error values. Line references are useful for debugging and can be used to indicate the location in the code where the error occurred. Ideally, unique identifiers such as random strings are better to avoid outdating the reference.
+Errorutils provides a way to add line references to error values that are only printing when logrus.DebugLevel is enabled. Line references are useful because they can be used to indicate the location in the code where the error occurred. Ideally, unique identifiers such as random strings are better to avoid outdating the reference.
 
 ### Creating a new error report
 
@@ -62,7 +62,7 @@ func x() {
 handleError:
     // if file cannot be created or there is a writting error, stash the sequences
     if err != nil {
-    stashingErr := errorutils.HandleFailure(
+        stashingErr := errorutils.HandleFailure(
                      err,
                      errorutils.Handler(func() error {
                          r, err2 := writeTemp(sha1)
@@ -75,9 +75,9 @@ handleError:
                          }),
                      errorutils.WithMsg(fmt.Sprintf("sequences file could not be created for %s at %s, a stash was ATTEMPTED as temporaryfile accessible with hash name %s", name, libLoc, sha1)),
                      errorutils.WithLineRef("uDIKN3XCREp"))
-    if stashingErr != nil {
+        if stashingErr != nil {
          errorutils.LogFailures(stashingErr, errorutils.WithLineRef("XqZsHJI8ABs"))
-    }
+        }
     }
     return err
 }
