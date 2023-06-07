@@ -25,6 +25,10 @@ func (e *Details) Error() string {
 	return m
 }
 
+func (e *Details) ExitCode() int {
+	return e.exitcode
+}
+
 type Option func(*Details)
 
 func WithLineRef(lineRef string) Option {
@@ -45,8 +49,8 @@ func WithMsg(msg string) Option {
 	}
 }
 
-type Handler func() error
+type Handler func() *Details
 
-func (fn Handler) Handle() error {
+func (fn Handler) Handle() *Details {
 	return fn()
 }

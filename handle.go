@@ -7,25 +7,21 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func HandleFailure(err error, handleFn Handler, o ...Option) error {
-	var err2 error
+// HandleFailure handles an error by logging it and then calling the handler function
+// If the handler function returns an error, it is logged as well
+func HandleFailure(err error, handleFn Handler, o ...Option) (err2 *Details) {
 	if err != nil {
 		logrus.Error(New(err, o...))
 		err2 = handleFn.Handle()
-		if err2 != nil {
-			logrus.Error(New(err2, o...))
-		}
+		LogFailures(New(err2, o...))
 	}
-	return errors.Join(err, err2)
+	return err2
 }
 
 // Failure has been detected, log it
 func LogFailures(err error, o ...Option) {
-	cErr := &Details{}
-	if !errors.As(err, &cErr) {
+	if err != nil {
 		logrus.Error(New(err, o...))
-	} else {
-		logrus.Error(cErr)
 	}
 }
 
@@ -35,24 +31,33 @@ func WarnOnFail(err error, o ...Option) {
 	}
 }
 
-func PanicOnFail(err error, o ...Option) {
+// formatted string should contain only one '%s' for the error message
+func WarnOnFailf(err error, format string, o ...Option) {
 	if err != nil {
-		logrus.Fatal(New(err, o...))
+		logrus.Warnf(format, New(err, o...))
 	}
 }
 
-// SafeClose closes a file and enables error handling on defer
+// irrecoverable programming error
+func PanicOnFail(err error, o ...Option) {
+	if err != nil {
+		optErr := New(err, o...)
+		std := logrus.StandardLogger()
+		std.Log(logrus.PanicLevel, optErr)
+		os.Exit(optErr.ExitCode())
+	}
+}
+
+// SafeClose closes a file and appends any errors to the error that a function is supposed to return
 // https://wstrm.dev/posts/errors-join-heart-defer/
 func SafeClose(file *os.File, origErr *error) {
 	*origErr = errors.Join(*origErr, file.Close())
 }
 
-// NotifyClose visibilizes errors on defer
+// NotifyClose visibilizes errors on defer for functions that do not return an error
 func NotifyClose(file *os.File) {
 	err := file.Close()
 	if err != nil {
 		LogFailures(err)
 	}
 }
-
-// a generic function x for either error or booleans

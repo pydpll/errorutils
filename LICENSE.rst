@@ -24,5 +24,3 @@ Academic and Research License
 10. Termination.  This License is effective until terminated. You may terminate this License at any time by destroying all copies of the Software and any documentation or other associated materials in your possession. This License will terminate immediately without notice from TGen if (a) you fail to comply with any of the terms and conditions of this License, or (b) the Software (or any modification or derivative) is found to infringe upon the intellectual property or other proprietary rights of any third party. Upon termination, you must destroy all copies of the Software (including all Software incorporated in any modification or derivative) and any documentation or other associated materials.
 
 Please cite the author in any work or product based on this material.
-
-

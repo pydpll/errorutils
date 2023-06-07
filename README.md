@@ -21,18 +21,18 @@ import "github.com/TGenNorth/errorutils"
 
 ### Creating a new error with Line references
 
-To create a new error with additional information, you can use the `New` function. This function takes an error and functions that match the type `Option` that takes in the informational values.
+To create a new error with additional information, you can use the `New` function. This function takes an error and functions of type `Option` that take in the informational values.
 
 ```go
 err := errors.New("something went wrong")
 details := errorutils.New(err, errorutils.WithExitCode(1), errorutils.WithLineRef("OKP8PK1CosD"))
 ```
 
-Errorutils provides a way to add line references to error values that are only printing when logrus.DebugLevel is enabled. Line references are useful because they can be used to indicate the location in the code where the error occurred. Ideally, unique identifiers such as random strings are better to avoid outdating the reference.
+Errorutils provides a way to add line references to error values that are only printed when logrus.DebugLevel is enabled. Line references indicate the location in the code where the error occurred. Ideally, unique identifiers such as random strings are better to avoid outdating the reference.
 
 ### Creating a new error report
 
-Errorutils also provides a succinct syntax for creating new error reports without having to use a premade error values.
+Errorutils also provides a succinct syntax for creating new error reports without having to use pre-made error values.
 
 ```go
 details := errorutils.NewReport("something went wrong", "OKP8PK1CosD")
@@ -40,14 +40,14 @@ details := errorutils.NewReport("something went wrong", "OKP8PK1CosD")
 
 ### Handler functions and safe closer
 
-Errorutils also provides handler functions that can be used to deal with errors in a consistent way. Additionally, the package offers a safe close function for \*os.file that visibilizes closing errors.
+Errorutils also provides handler functions that can be used to deal with errors consistently. Additionally, the package offers a safe close function for `*os.file` that visibilizes closing errors.
 
 The following example based on TGenNorth/kmare/database, stashes the result if writing fails.
 
 ```go
 func x() {
     //... this function did some valuable work that needs to be saved.
-    seqFile, err := os.Create(filepath.Join(libLoc, fmt.Sprintf("%d.fasta", name)))
+    seqFile, err := os.Create(filepath.Join(libLoc, fmt.Sprintf("%s.fasta", name)))
         if err != nil {
             goto handleError
         }
@@ -61,25 +61,20 @@ func x() {
     }
 handleError:
     // if file cannot be created or there is a writting error, stash the sequences
-    if err != nil {
-        stashingErr := errorutils.HandleFailure(
-                     err,
-                     errorutils.Handler(func() error {
-                         r, err2 := writeTemp(sha1)
-                         if err2 != nil {
-                         return err2
-                         }
-                         _, err2 = r.Write(formattedBytes)
-                         errorutils.SafeClose(r, &err2)
-                         return err2
-                         }),
-                     errorutils.WithMsg(fmt.Sprintf("sequences file could not be created for %s at %s, a stash was ATTEMPTED as temporaryfile accessible with hash name %s", name, libLoc, sha1)),
-                     errorutils.WithLineRef("uDIKN3XCREp"))
-        if stashingErr != nil {
-         errorutils.LogFailures(stashingErr, errorutils.WithLineRef("XqZsHJI8ABs"))
-        }
-    }
-    return err
+    stashingErr := errorutils.HandleFailure(
+                    err,
+                    errorutils.Handler(func() error {
+                        r, err2 := writeTemp(sha1)
+                        if err2 != nil {
+                        return err2
+                        }
+                        _, err2 = r.Write(formattedBytes)
+                        errorutils.SafeClose(r, &err2)
+                        return err2
+                        }),
+                    errorutils.WithMsg(fmt.Sprintf("sequences file could not be created for %s at %s, a stash was ATTEMPTED as temporaryfile accessible with hash name %s", name, libLoc, sha1)),
+                    errorutils.WithLineRef("uDIKN3XCREp"))
+    errorutils.WarnOnFailf(stashingErr, fmt.Sprintf("Sequences for %s cound not be saved: \%s\nSkipping...", name), errorutils.WithLineRef("XqZsHJI8ABs"))
 }
 ```
 

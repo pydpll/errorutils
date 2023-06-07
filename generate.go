@@ -1,17 +1,15 @@
 package errorutils
 
 // Create instance of custom error type or or add info to an existing one.
-func New(err error, o ...Option) error {
+func New(err error, o ...Option) *Details {
+	e := &Details{}
 	//if error is of type Details apply options and return
 	if dtl, ok := err.(*Details); ok {
-		for _, opt := range o {
-			opt(dtl)
+		e = dtl
+	} else {
+		e = &Details{
+			msg: err.Error(),
 		}
-		return dtl
-	}
-	//else create a new Details and apply options
-	e := &Details{
-		msg: err.Error(),
 	}
 	for _, opt := range o {
 		opt(e)
