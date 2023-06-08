@@ -32,7 +32,7 @@ Errorutils provides a way to add line references to error values that are only p
 
 ### Creating a new error report
 
-Errorutils also provides a succinct syntax for creating new error reports without having to use pre-made error values.
+Errorutils has a succinct syntax for creating new `Detail` errors without having to use pre-made error values.
 
 ```go
 details := errorutils.NewReport("something went wrong", "OKP8PK1CosD")
@@ -40,7 +40,7 @@ details := errorutils.NewReport("something went wrong", "OKP8PK1CosD")
 
 ### Handler functions and safe closer
 
-Errorutils also provides handler functions that can be used to deal with errors consistently. Additionally, the package offers a safe close function for `*os.file` that visibilizes closing errors.
+Errorutils accepts handler functions that deal with errors consistently. Additionally, the package offers safe closing functions that visibilize closing errors for io.Closer instances.
 
 The following example based on TGenNorth/kmare/database, stashes the result if writing fails.
 
@@ -53,7 +53,7 @@ func x() {
         }
 
     {
-        defer errorutils.SafeClose(seqFile, &err)
+        defer errorutils.NotifyClose(seqFile, &err)
         //bufio writer
         seqWriter := bufio.NewWriter(seqFile)
         _, err = seqWriter.Write(formattedBytes)
@@ -63,21 +63,32 @@ handleError:
     // if file cannot be created or there is a writting error, stash the sequences
     stashingErr := errorutils.HandleFailure(
                     err,
-                    errorutils.Handler(func() error {
+                    errorutils.Handler(func() *Details {
                         r, err2 := writeTemp(sha1)
                         if err2 != nil {
-                        return err2
+                        return errorutils.New(err2)
                         }
                         _, err2 = r.Write(formattedBytes)
                         errorutils.SafeClose(r, &err2)
-                        return err2
+                        return errorutils.New(err2)
                         }),
                     errorutils.WithMsg(fmt.Sprintf("sequences file could not be created for %s at %s, a stash was ATTEMPTED as temporaryfile accessible with hash name %s", name, libLoc, sha1)),
                     errorutils.WithLineRef("uDIKN3XCREp"))
-    errorutils.WarnOnFailf(stashingErr, fmt.Sprintf("Sequences for %s cound not be saved: \%s\nSkipping...", name), errorutils.WithLineRef("XqZsHJI8ABs"))
+    // formatting string must have a scaped string verb '%%s'
+    errorutils.WarnOnFailf(stashingErr, fmt.Sprintf("Sequences for %s cound not be saved: %%s\nSkipping...", name), errorutils.WithLineRef("XqZsHJI8ABs"))
 }
 ```
+### Error handling abstraction
 
+Errorutils offers error handling that supplants simple cases of traditional error checking with if statements. for more complex error handling use `errorutils.HandleFailure` as described above
+
+```go
+err := fmt.Error("this is a simple error")
+errorutils.LogFailures(err)
+errorutils.WarnOnFail(err)
+errorutils.WarnOnFailf(err, "additional info: %%s")
+errorutils.PaniconFail(err)
+```
 
 ## License
 

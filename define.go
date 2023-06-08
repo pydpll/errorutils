@@ -31,9 +31,11 @@ func (e *Details) ExitCode() int {
 
 type Option func(*Details)
 
+// WithLineRef is an option to add a line reference to the error message
+// use a random string instead of the line number. Calling this option on an existing Details value will append the new lineref to the existing one with a '_' separator.
 func WithLineRef(lineRef string) Option {
 	return func(e *Details) {
-		e.lineRef = lineRef
+		e.lineRef = e.lineRef + "_" + lineRef
 	}
 }
 

@@ -2,6 +2,7 @@ package errorutils
 
 import (
 	"errors"
+	"io"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -50,12 +51,12 @@ func PanicOnFail(err error, o ...Option) {
 
 // SafeClose closes a file and appends any errors to the error that a function is supposed to return
 // https://wstrm.dev/posts/errors-join-heart-defer/
-func SafeClose(file *os.File, origErr *error) {
+func SafeClose(file io.Closer, origErr *error) {
 	*origErr = errors.Join(*origErr, file.Close())
 }
 
 // NotifyClose visibilizes errors on defer for functions that do not return an error
-func NotifyClose(file *os.File) {
+func NotifyClose(file io.Closer) {
 	err := file.Close()
 	if err != nil {
 		LogFailures(err)
