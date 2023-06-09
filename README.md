@@ -53,7 +53,7 @@ func x() {
         }
 
     {
-        defer errorutils.NotifyClose(seqFile, &err)
+        defer errorutils.NotifyClose(seqFile)
         //bufio writer
         seqWriter := bufio.NewWriter(seqFile)
         _, err = seqWriter.Write(formattedBytes)
@@ -74,7 +74,7 @@ handleError:
                         }),
                     errorutils.WithMsg(fmt.Sprintf("sequences file could not be created for %s at %s, a stash was ATTEMPTED as temporaryfile accessible with hash name %s", name, libLoc, sha1)),
                     errorutils.WithLineRef("uDIKN3XCREp"))
-    // formatting string must have a scaped string verb '%%s'
+    // in this case format string must have a scaped string verb '%%s' to ensure WarnOnFailf will have a place to print error value.
     errorutils.WarnOnFailf(stashingErr, fmt.Sprintf("Sequences for %s cound not be saved: %%s\nSkipping...", name), errorutils.WithLineRef("XqZsHJI8ABs"))
 }
 ```
