@@ -26,13 +26,21 @@ func LogFailures(err error, o ...Option) {
 	}
 }
 
+// Failure has been detected, log it
+// formatted string should contain one '%s' for the error message
+func LogFailuresf(err error, format string, o ...Option) {
+	if err != nil {
+		logrus.Errorf(format, New(err, o...))
+	}
+}
+
 func WarnOnFail(err error, o ...Option) {
 	if err != nil {
 		logrus.Warn(New(err, o...))
 	}
 }
 
-// formatted string should contain only one '%s' for the error message
+// formatted string should contain one '%s' for the error message
 func WarnOnFailf(err error, format string, o ...Option) {
 	if err != nil {
 		logrus.Warnf(format, New(err, o...))
@@ -40,6 +48,17 @@ func WarnOnFailf(err error, format string, o ...Option) {
 }
 
 // irrecoverable programming error
+func ExitOnFail(err error, o ...Option) {
+	if err != nil {
+		optErr := New(err, o...)
+		std := logrus.StandardLogger()
+		std.Log(logrus.FatalLevel, optErr)
+		os.Exit(optErr.ExitCode())
+	}
+}
+
+// depriecated
+// legacy panic, replace with ExitOnFail or use panic() instead
 func PanicOnFail(err error, o ...Option) {
 	if err != nil {
 		optErr := New(err, o...)

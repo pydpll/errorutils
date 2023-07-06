@@ -19,28 +19,51 @@ package myPackage
 import "github.com/TGenNorth/errorutils"
 ```
 
-### Creating a new error with Line references
+### When to use errorutils
 
-To create a new error with additional information, you can use the `New` function. This function takes an error and functions of type `Option` that take in the informational values.
+Errorutils enables error checking and handling at the location where the error is generated or captured. In general, our recommendation is to use `ExitOnFail()` in places where `panic()` or `logrus.Error()` could be used, `WarnOnFail()` provides notifications to users in cases where the program could continue operating. These functions do not need to be wrapped in if conditions to check for nil.
+
+### When not to use errorutils
+
+The functionality of this package is constrained to only handling failure errors. The following are some examples where the use of alternatives is encouraged:
+
+- In places where it makes more sense to return the error, use the common construct `if err != nil`.
+- In code tests, do not replace any of the error and logging functionality of a testing object.
+- Sharing information such as EOF should not be handled with this framework.
+- Recoverable panics or terminations that expect the defer stack to be executed should rely on built-in `panic()` instead.
+- The `Details` error type is not meant to be compared.
+
+### Creating a new error with line references
+
+To add details to an error, use the `New` function. This function takes an error and functions of type `Option` that take in the informational values.
 
 ```go
-err := errors.New("something went wrong")
-details := errorutils.New(err, errorutils.WithExitCode(1), errorutils.WithLineRef("OKP8PK1CosD"))
+err := myfunc()
+if err !=nil {
+    detailed := errorutils.New(err, errorutils.WithExitCode(3), errorutils.WithLineRef("OKP8PK1CosD"))
+    return detailed
+}
 ```
 
-Errorutils provides a way to add line references to error values that are only printed when logrus.DebugLevel is enabled. Line references indicate the location in the code where the error occurred. Ideally, unique identifiers such as random strings are better to avoid outdating the reference.
+Errorutils provides a way to add line references to error values that are only printed when `logrus.DebugLevel` is enabled. Line references indicate the location in the code where the error occurred. Ideally, unique identifiers such as random strings are better to avoid outdating the reference.
 
-### Creating a new error report
+### Error handling abstraction
 
-Errorutils has a succinct syntax for creating new `Detail` errors without having to use pre-made error values.
+Errorutils offers error handling that replaces simple cases of error checking with if statements. For more complex error handling use `errorutils.HandleFailure` as described below.
 
 ```go
-details := errorutils.NewReport("something went wrong", "OKP8PK1CosD")
+err := myFunc()
+//handle with one of these
+errorutils.LogFailures(err)
+errorutils.LogFailuresf(err, "other error info: %%s")
+errorutils.WarnOnFail(err)
+errorutils.WarnOnFailf(err, "additional info: %%s")
+errorutils.ExitonFail(err)
 ```
 
 ### Handler functions and safe closer
 
-Errorutils accepts handler functions that deal with errors consistently. Additionally, the package offers safe closing functions that visibilize closing errors for io.Closer instances.
+Errorutils accepts handler functions that deal with errors consistently. Additionally, the package offers safe closing functions that visibilize closing errors for Closers.
 
 The following example based on TGenNorth/kmare/database, stashes the result if writing fails.
 
@@ -77,17 +100,6 @@ handleError:
     // in this case format string must have a scaped string verb '%%s' to ensure WarnOnFailf will have a place to print error value.
     errorutils.WarnOnFailf(stashingErr, fmt.Sprintf("Sequences for %s cound not be saved: %%s\nSkipping...", name), errorutils.WithLineRef("XqZsHJI8ABs"))
 }
-```
-### Error handling abstraction
-
-Errorutils offers error handling that supplants simple cases of traditional error checking with if statements. for more complex error handling use `errorutils.HandleFailure` as described above
-
-```go
-err := fmt.Error("this is a simple error")
-errorutils.LogFailures(err)
-errorutils.WarnOnFail(err)
-errorutils.WarnOnFailf(err, "additional info: %%s")
-errorutils.PaniconFail(err)
 ```
 
 ## License
