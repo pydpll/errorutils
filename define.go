@@ -15,6 +15,7 @@ type Details struct {
 	lineRef  string //will only print if debug is enabled, use a random string instead of the line number
 	msg      string //encouraged to be a single line
 	exitcode int    // only set for terminating errors
+	altPrint string
 }
 
 func (e *Details) Error() string {
@@ -27,6 +28,18 @@ func (e *Details) Error() string {
 
 func (e *Details) ExitCode() int {
 	return e.exitcode
+
+}
+
+func (e *Details) HasAltprint() bool {
+	return e.altPrint != ""
+}
+
+// Alternative message for nil errors
+func WithAltPrint(altM string) Option {
+	return func(e *Details) {
+		e.altPrint = altM
+	}
 }
 
 type Option func(*Details)
