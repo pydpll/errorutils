@@ -32,7 +32,15 @@ func (e *Details) ExitCode() int {
 }
 
 func (e *Details) HasAltprint() bool {
+	if e == nil {
+		return false
+	}
 	return e.altPrint != ""
+}
+
+func isNilDetail(e error) bool {
+	val, _ := e.(*Details)
+	return val == nil
 }
 
 // Alternative message for nil errors

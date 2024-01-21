@@ -2,6 +2,11 @@ package errorutils
 
 // Create instance of custom error type or or add info to an existing one.
 func New(err error, o ...Option) *Details {
+	if err == nil {
+		return nil
+	} else if check, ok := err.(*Details); ok && check == nil {
+		return nil
+	}
 	e := &Details{}
 	//if error is of type Details apply options and return
 	if dtl, ok := err.(*Details); ok {
