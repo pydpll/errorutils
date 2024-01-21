@@ -1,4 +1,4 @@
-module github.com/TGenNorth/errorutils
+module github.com/pydpll/errorutils
 
 go 1.20
 
