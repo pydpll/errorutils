@@ -32,7 +32,7 @@ func (e *Details) ExitCode() int {
 }
 
 func (e *Details) HasAltprint() bool {
-	if e == nil {
+	if isNilDetail(e) {
 		return false
 	}
 	return e.altPrint != ""
