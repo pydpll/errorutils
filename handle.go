@@ -12,7 +12,7 @@ import (
 // If the handler function returns an error, it is logged as well
 func HandleFailure(err error, handleFn Handler, o ...Option) (err2 *Details) {
 	dtls := New(err, o...)
-	if !isNilDetail(err) {
+	if !isNilDetail(dtls) {
 		logrus.Error(dtls)
 		err2 = handleFn.Handle()
 		LogFailures(New(err2, o...))
@@ -25,7 +25,7 @@ func HandleFailure(err error, handleFn Handler, o ...Option) (err2 *Details) {
 // Failure has been detected, log it
 func LogFailures(err error, o ...Option) {
 	dtls := New(err, o...)
-	if !isNilDetail(err) {
+	if !isNilDetail(dtls) {
 		logrus.Error(dtls)
 	} else if dtls.HasAltprint() {
 		logrus.Info(dtls.altPrint)
@@ -36,7 +36,7 @@ func LogFailures(err error, o ...Option) {
 // formatted string should contain one '%s' for the error message
 func LogFailuresf(err error, format string, o ...Option) {
 	dtls := New(err, o...)
-	if !isNilDetail(err) {
+	if !isNilDetail(dtls) {
 		logrus.Errorf(format, dtls)
 	} else if dtls.HasAltprint() {
 		logrus.Info(dtls.altPrint)
@@ -46,7 +46,7 @@ func LogFailuresf(err error, format string, o ...Option) {
 func WarnOnFail(err error, o ...Option) {
 	dtls := New(err, o...)
 
-	if !isNilDetail(err) {
+	if !isNilDetail(dtls) {
 		logrus.Warn(dtls)
 	} else if dtls.HasAltprint() {
 		logrus.Info(dtls.altPrint)
@@ -56,7 +56,7 @@ func WarnOnFail(err error, o ...Option) {
 // formatted string should contain one '%s' for the error message
 func WarnOnFailf(err error, format string, o ...Option) {
 	dtls := New(err, o...)
-	if !isNilDetail(err) {
+	if !isNilDetail(dtls) {
 		logrus.Warnf(format, dtls)
 	} else if dtls.HasAltprint() {
 		logrus.Info(dtls.altPrint)
@@ -66,7 +66,7 @@ func WarnOnFailf(err error, format string, o ...Option) {
 // irrecoverable programming error
 func ExitOnFail(err error, o ...Option) {
 	dtls := New(err, o...)
-	if !isNilDetail(err) {
+	if !isNilDetail(dtls) {
 		std := logrus.StandardLogger()
 		std.Log(logrus.FatalLevel, dtls)
 		os.Exit(dtls.ExitCode())
