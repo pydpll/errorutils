@@ -89,7 +89,10 @@ func PanicOnFail(err error, o ...Option) {
 // SafeClose closes a file and appends any errors to the error that a function is supposed to return
 // https://wstrm.dev/posts/errors-join-heart-defer/
 func SafeClose(file io.Closer, origErr *error) {
-	*origErr = errors.Join(*origErr, file.Close())
+	//avoid changing it to the dynamically alocated slice of errors errors.Join returns if possible
+	if cerr := file.Close(); cerr != nil {
+		*origErr = errors.Join(*origErr, cerr)
+	}
 }
 
 // NotifyClose visibilizes errors on defer for functions that do not return an error
