@@ -16,7 +16,7 @@ func New(err error, o ...Option) *Details {
 	}
 	//must check if the inner error is nil, otherwise retain it
 	val, isDtl := err.(*Details)
-	if err == nil || ( isDtl && val == nil) {
+	if err == nil || (isDtl && val == nil) {
 		if wantsInner < 0 {
 			return nil
 		}

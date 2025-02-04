@@ -6,6 +6,7 @@
 package errorutils
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -22,6 +23,9 @@ type Details struct {
 }
 
 func (e *Details) Error() string {
+	if isNilDetail(e) {
+		return "<nil error>"
+	}
 	m := fmt.Sprintf("error: %s", e.msg)
 	if e.inner != nil {
 		m += fmt.Sprintf("\t%v", e.inner)
@@ -48,7 +52,17 @@ func (e *Details) HasAltprint() bool {
 	return e.altPrint != ""
 }
 
+func (e *Details) Striptype() error {
+	if isNilDetail(e) {
+		return nil
+	}
+	return errors.New(e.Error())
+}
+
 func isNilDetail(e error) bool {
+	if e == nil {
+		return true
+	}
 	val, _ := e.(*Details)
 	return val == nil
 }
@@ -74,6 +88,7 @@ func compareOptions(target, template Option) bool {
 }
 
 // WithLineRef is an option to add a line reference to the error message. use a random string instead of the line number. Calling this option on an existing Details value will append the new lineref to the existing one with a '_' separator.
+//
 //go:noinline
 func WithLineRef(lineRef string) Option {
 	return func(e *Details) {
