@@ -1,6 +1,6 @@
 # Errorutils
 
-Errorutils is a reusable optional functions error framework that extends the logrus package. It provides a simple and flexible way to instantiate custom error types with additional information.
+Errorutils is a reusable optional functions error framework that extends the zerolog package. It provides a simple and flexible way to instantiate custom error types with additional information.
 
 ## Installation
 
@@ -21,7 +21,7 @@ import "github.com/TGenNorth/errorutils"
 
 ### When to use errorutils
 
-Errorutils enables error checking and handling at the location where the error is generated or captured. In general, our recommendation is to use `ExitOnFail()` in places where `panic()` or `logrus.Error()` could be used, `WarnOnFail()` provides notifications to users in cases where the program could continue operating. These functions do not need to be wrapped in if conditions to check for nil.
+Errorutils enables error checking and handling at the location where the error is generated or captured. In general, our recommendation is to use `ExitOnFail()` in places where `panic()` or `log.fatal()` could be used, `WarnOnFail()` provides notifications to users in cases where the program could continue operating. These functions do not need to be wrapped in if conditions to check for nil.
 
 ### When not to use errorutils
 
@@ -45,7 +45,7 @@ if err !=nil {
 }
 ```
 
-Errorutils provides a way to add line references to error values that are only printed when `logrus.DebugLevel` is enabled. Line references indicate the location in the code where the error occurred. Ideally, unique identifiers such as random strings are better to avoid outdating the reference.
+Errorutils provides a way to add line references to error values that are only printed when `zerolog.SetGlobal.DebugLevel` is enabled. Line references indicate the location in the code where the error occurred. Ideally, unique identifiers such as random strings are better to avoid outdating the reference.
 
 ### Error handling abstraction
 

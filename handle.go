@@ -4,8 +4,6 @@ import (
 	"errors"
 	"io"
 	"os"
-
-	"github.com/sirupsen/logrus"
 )
 
 // HandleFailure handles an error by logging it and then calling the handler function
@@ -13,11 +11,11 @@ import (
 func HandleFailure(err error, handleFn Handler, o ...Option) (err2 *Details) {
 	dtls := New(err, o...)
 	if !isNilDetail(dtls) {
-		logrus.Error(dtls)
+		log.Error().Msg(dtls.Error())
 		err2 = handleFn.Handle()
 		LogFailures(New(err2, o...))
 	} else if dtls.HasAltprint() {
-		logrus.Info(dtls.altPrint)
+		log.Info().Msg(dtls.altPrint)
 	}
 	return err2
 }
@@ -26,9 +24,9 @@ func HandleFailure(err error, handleFn Handler, o ...Option) (err2 *Details) {
 func LogFailures(err error, o ...Option) {
 	dtls := New(err, o...)
 	if !isNilDetail(dtls) {
-		logrus.Error(dtls)
+		log.Error().Msg(dtls.Error())
 	} else if dtls.HasAltprint() {
-		logrus.Info(dtls.altPrint)
+		log.Info().Msg(dtls.altPrint)
 	}
 }
 
@@ -37,9 +35,9 @@ func LogFailures(err error, o ...Option) {
 func LogFailuresf(err error, format string, o ...Option) {
 	dtls := New(err, o...)
 	if !isNilDetail(dtls) {
-		logrus.Errorf(format, dtls)
+		log.Error().Msgf(format, dtls)
 	} else if dtls.HasAltprint() {
-		logrus.Info(dtls.altPrint)
+		log.Info().Msg(dtls.altPrint)
 	}
 }
 
@@ -47,9 +45,9 @@ func WarnOnFail(err error, o ...Option) {
 	dtls := New(err, o...)
 
 	if !isNilDetail(dtls) {
-		logrus.Warn(dtls)
+		log.Warn().Msg(dtls.Error())
 	} else if dtls.HasAltprint() {
-		logrus.Info(dtls.altPrint)
+		log.Info().Msg(dtls.altPrint)
 	}
 }
 
@@ -57,9 +55,9 @@ func WarnOnFail(err error, o ...Option) {
 func WarnOnFailf(err error, format string, o ...Option) {
 	dtls := New(err, o...)
 	if !isNilDetail(dtls) {
-		logrus.Warnf(format, dtls)
+		log.Warn().Msgf(format, dtls)
 	} else if dtls.HasAltprint() {
-		logrus.Info(dtls.altPrint)
+		log.Info().Msg(dtls.altPrint)
 	}
 }
 
@@ -67,22 +65,10 @@ func WarnOnFailf(err error, format string, o ...Option) {
 func ExitOnFail(err error, o ...Option) {
 	dtls := New(err, o...)
 	if !isNilDetail(dtls) {
-		std := logrus.StandardLogger()
-		std.Log(logrus.FatalLevel, dtls)
+		log.Fatal().Msg(dtls.Error())
 		os.Exit(dtls.ExitCode())
 	} else if dtls.HasAltprint() {
-		logrus.Info(dtls.altPrint)
-	}
-}
-
-// depriecated
-// legacy panic, replace with ExitOnFail or use panic() instead does not support altPrint and can't handle detail nils
-func PanicOnFail(err error, o ...Option) {
-	if err != nil {
-		optErr := New(err, o...)
-		std := logrus.StandardLogger()
-		std.Log(logrus.PanicLevel, optErr)
-		os.Exit(optErr.ExitCode())
+		log.Info().Msg(dtls.altPrint)
 	}
 }
 

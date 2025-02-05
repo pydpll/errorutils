@@ -1,4 +1,4 @@
-// ErrorUtils facilitates error handling and reporting
+// ErrorUtils facilitates error handling and reporting. It checks for nil erros subtly and reports them to a single logger. To swap out the logge or use it for other event levels use SetLogger and GetLogger respectively.
 //
 // The package provides a custom error type that can be used to add additional information to an error message. The recommendation is to use the NewReport function to create a new error report. The lineRef is only used in debug mode. The exitcode is only used for terminating errors.
 // Return simple errors such as user errors with fmt.Errorf and not with NewReport to avoid verbosity.
@@ -10,8 +10,20 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/sirupsen/logrus"
+	"github.com/pydpll/errorutils/console"
+	"github.com/rs/zerolog"
 )
+
+var log zerolog.Logger = console.NewWriter("", false)
+
+func GetLogger() *zerolog.Logger {
+	return &log
+}
+
+// WARNING: No concurrency safety. This will change the logger for all future calls
+func SetLogger(l *zerolog.Logger) {
+	log = *l
+}
 
 // Details is a custom error type that can be used to add additional information to an error message
 type Details struct {
@@ -30,10 +42,14 @@ func (e *Details) Error() string {
 	if e.inner != nil {
 		m += fmt.Sprintf("\t%v", e.inner)
 	}
-	if logrus.IsLevelEnabled(logrus.DebugLevel) {
+	if isDebugLevelEnabled() {
 		m += fmt.Sprintf("\tLineRef: %s\tExit Code: %d", e.lineRef, e.exitcode)
 	}
 	return m
+}
+
+func isDebugLevelEnabled() bool {
+	return log.GetLevel() <= zerolog.DebugLevel
 }
 
 func (e *Details) Unwrap() error {
@@ -81,9 +97,9 @@ func compareOptions(target, template Option) bool {
 	// vx := reflect.ValueOf(target)
 	// vy := reflect.ValueOf(template)
 	// px := vx.Pointer()
-	// logrus.Debug("px is ", px)
+	//log.Debug.Msg("px is ", px)
 	// py := vy.Pointer()
-	// logrus.Debug("py is ", py)
+	// log.Debug.Msg("py is ", py)
 	// return px == py
 }
 
