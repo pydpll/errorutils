@@ -28,7 +28,7 @@ Errorutils enables error checking and handling at the location where the error i
 The functionality of this package is constrained to only handling failure errors. The following are some examples where the use of alternatives is encouraged:
 
 - In places where it makes more sense to return the error, use the common construct `if err != nil`.
-- When defered calls are necessary for cleanup or other tasks, used Panic(). This library uses os.Exit().
+- When defered calls are necessary for cleanup or other tasks, use `panic()`. This library uses os.Exit().
 - In control flow scenarios where there should be conditional execution of keywords such as `continue` and `break` based on the error.
 - In code tests, do not replace any of the error and logging functionality of a testing object.
 - When Sharing information such as EOF should be not be handled with this custom type, some workarounds by wrapping errors `WithInner()` might work but it is not a guarantee (see next section example).
