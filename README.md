@@ -1,55 +1,55 @@
 # Errorutils
 
-Errorutils is a reusable optional functions error framework that extends the logrus package. It provides a simple and flexible way to instantiate custom error types with additional information.
+Errorutils is a reusable optional functions error framework that extends the logrus package. It provides a simple and flexible way to instantiate custom error types with additional information, sets up a custom logger for better formatting, and provides descriptive one-line checks for errors.
 
 ## Installation
 
 To use Errorutils in your Go project, you can install it using `go get`:
 
 ```
-> go get github.com/TgenNorth/errorutils
+> go get github.com/pydpll/errorutils
 ```
 
 ## Usage
 
-To use Errorutils in your project, you first need to import it:
+To use Errorutils in your project, you first need to import it. It's init funtion will make the custom formatter accessible through normal logrus entries.
 
 ```go
 package myPackage
-import "github.com/TGenNorth/errorutils"
+import "github.com/pydpll/errorutils"
 ```
 
 ### When to use errorutils
 
-Errorutils enables error checking and handling at the location where the error is generated or captured. In general, our recommendation is to use `ExitOnFail()` in places where `panic()` or `logrus.Error()` could be used, `WarnOnFail()` provides notifications to users in cases where the program could continue operating. These functions do not need to be wrapped in if conditions to check for nil.
+Errorutils enables error checking and handling at the location where the error is generated or captured. In general, our recommendation is to use `ExitOnFail()` in places where `logrus.Error()` could be used, `WarnOnFail()` provides notifications to users in cases where the program could continue operating. These functions are nil-error checks.
 
 ### When not to use errorutils
 
 The functionality of this package is constrained to only handling failure errors. The following are some examples where the use of alternatives is encouraged:
 
 - In places where it makes more sense to return the error, use the common construct `if err != nil`.
+- When defered calls are necessary for cleanup or other tasks, used Panic(). This library uses os.Exit().
+- In control flow scenarios where there should be conditional execution of keywords such as `continue` and `break` based on the error.
 - In code tests, do not replace any of the error and logging functionality of a testing object.
-- Sharing information such as EOF should not be handled with this framework.
+- When Sharing information such as EOF should be not be handled with this custom type, some workarounds by wrapping errors `WithInner()` might work but it is not a guarantee (see next section example).
 - Recoverable panics or terminations that expect the defer stack to be executed should rely on built-in `panic()` instead.
 - The `Details` error type is not meant to be compared.
 
 ### Creating a new error with line references
 
-To add details to an error, use the `New` function. This function takes an error and functions of type `Option` that take in the informational values.
+To add details to an error, use the `New` function. This function takes an error and functions of type `Option` to add information, and wrap other error types. This is a nil check. If both errors are provided (by argument and inner error option) and are nil the returned value is a nil *Details.
 
 ```go
-err := myfunc()
-if err !=nil {
-    detailed := errorutils.New(err, errorutils.WithExitCode(3), errorutils.WithLineRef("OKP8PK1CosD"))
-    return detailed
-}
+//err is nil, otherErr is not
+detailed := errorutils.New(err, errorutils.WithExitCode(3), errorutils.WithLineRef("OKP8PK1CosD"), errorutils.WithInner(otherErr))
+// detailed is now showing the inner error otherErr.Error() as the message. Type information has been lost.
 ```
 
-Errorutils provides a way to add line references to error values that are only printed when `logrus.DebugLevel` is enabled. Line references indicate the location in the code where the error occurred. Ideally, unique identifiers such as random strings are better to avoid outdating the reference.
+Errorutils provides a way to add line references to error values that are only printed when `logrus.DebugLevel` is enabled. Line references indicate the location in the code where the error occurred. Ideally, unique identifiers such as random strings are better to avoid outdating the reference. Alternatively assign the information to present the offending input or other useful information.
 
 ### Error handling abstraction
 
-Errorutils offers error handling that replaces simple cases of error checking with if statements. For more complex error handling use `errorutils.HandleFailure` as described below.
+As mentioned before, Errorutils offers error handling that replaces simple cases of error checking. For more complex error handling use `errorutils.HandleFailure` as described below.
 
 ```go
 err := myFunc()
@@ -65,7 +65,7 @@ errorutils.ExitonFail(err)
 
 Errorutils accepts handler functions that deal with errors consistently. Additionally, the package offers safe closing functions that visibilize closing errors for Closers.
 
-The following example based on TGenNorth/kmare/database, stashes the result if writing fails.
+The following example stashes the result if writing fails.
 
 ```go
 func x() {
@@ -104,4 +104,4 @@ handleError:
 
 ## License
 
-Errorutils is released under our custom Academic and Research license. See [LICENSE](LICENSE.rst) for details.
+Errorutils is released under MIT Licensing. see [LICENSE](LICENSE) for details.
