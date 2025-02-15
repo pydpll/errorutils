@@ -37,7 +37,7 @@ func TestCompareOptions(t *testing.T) {
 
 func BenchmarkConsole(b *testing.B) {
 	tests := mockMessages()
-	//logrus: set logger to /dev/null
+	logrus.SetLevel(logrus.TraceLevel)
 	logrus.SetOutput(io.Discard)
 	//data colection file append create
 	f, err := os.OpenFile("timing.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
