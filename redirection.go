@@ -23,6 +23,12 @@ func ChangeWriter(l logrus.Level, w io.Writer) {
 	customFormatter.Writers[l] = w
 }
 
+func ToggleColor() (isColorfull bool) {
+	customFormatter.Color = !customFormatter.Color
+	logrus.SetFormatter(customFormatter)
+	return customFormatter.Color
+}
+
 func init() {
 	logrus.SetFormatter(customFormatter)
 	//fix duplication issue
@@ -49,6 +55,7 @@ type MyFormatter struct {
 	Actions         map[logrus.Level]logAction
 	TimestampFormat string
 	Writers         map[logrus.Level]io.Writer
+	Color           bool
 }
 
 var customFormatter = &MyFormatter{
@@ -56,6 +63,7 @@ var customFormatter = &MyFormatter{
 	Actions: make(map[logrus.Level]logAction),
 	//human time
 	TimestampFormat: "2006-01-02 15:04:05",
+	Color:           true,
 }
 
 func (f *MyFormatter) Format(entry *logrus.Entry) ([]byte, error) {
@@ -70,6 +78,6 @@ func (f *MyFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 			return nil, nil
 		}
 	}
-	b.WriteString(fmt.Sprintf("%s [%s] %s\n", entry.Time.Format(f.TimestampFormat), makeupL(entry.Level, true), entry.Message))
+	b.WriteString(fmt.Sprintf("%s [%s] %s\n", entry.Time.Format(f.TimestampFormat), makeupL(entry.Level, f.Color), entry.Message))
 	return b.Bytes(), nil
 }

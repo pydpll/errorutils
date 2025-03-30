@@ -29,9 +29,9 @@ func getColorByLevel(level logrus.Level) int {
 
 func makeupL(level logrus.Level, color bool) string {
 	x := strings.ToUpper(level.String())[0:4]
-	n := getColorByLevel(level)
+	n := getColorByLevel(level) //Color Code
 	if !color {
-		return fmt.Sprintf("[%s]", x)
+		return x
 	}
 	return fmt.Sprintf("\x1b[%dm%s\x1b[0m", n, x)
 }
