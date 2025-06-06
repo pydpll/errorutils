@@ -2,7 +2,10 @@ package errorutils
 
 import (
 	"errors"
+	"sync"
+	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v3"
 )
 
@@ -78,4 +81,30 @@ func NewReport(msg string, lineRef string, o ...Option) *Details {
 		opt(d)
 	}
 	return d
+}
+
+//wait for wg to finish with debug logging every 5 seconds. If maxCycles is -1, will wait indefinitely otherwise will terminate after maxCycles
+func MonitorWaitGroup(wg *sync.WaitGroup, maxCycles int) {
+	var cycles int
+	done := make(chan bool)
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+waitg:
+	for {
+		select {
+		case <-ticker.C:
+			logrus.Debug("CONCURRENCY:minedir waiting for internal wg")
+			if maxCycles != -1 && cycles > maxCycles {
+				break waitg
+			}
+		case <-done:
+			break waitg
+		}
+		cycles++
+	}
+	logrus.Debug("CONCURRENCY:minedir internal wg finished, terminating miner branch")
 }
