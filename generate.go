@@ -84,7 +84,7 @@ func NewReport(msg string, lineRef string, o ...Option) *Details {
 	return d
 }
 
-// wait for wg to finish with debug logging every 5 seconds. If maxCycles is -1, will wait indefinitely otherwise will terminate after maxCycles
+// blocking! wait for wg to finish with debug logging every 5 seconds. If maxCycles is -1, will wait indefinitely otherwise will terminate after maxCycles. Optional identifier for logging.
 func MonitorWaitGroup(wg *sync.WaitGroup, maxCycles int, identifier ...string) {
 	if identifier == nil {
 		identifier = []string{""}
