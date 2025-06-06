@@ -117,6 +117,7 @@ func WithInner(err error) Option {
 	}
 }
 
+
 type Handler func() *Details
 
 func (fn Handler) Handle() *Details {

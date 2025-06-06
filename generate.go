@@ -2,6 +2,7 @@ package errorutils
 
 import (
 	"errors"
+	"strings"
 	"sync"
 	"time"
 
@@ -83,8 +84,14 @@ func NewReport(msg string, lineRef string, o ...Option) *Details {
 	return d
 }
 
-//wait for wg to finish with debug logging every 5 seconds. If maxCycles is -1, will wait indefinitely otherwise will terminate after maxCycles
-func MonitorWaitGroup(wg *sync.WaitGroup, maxCycles int) {
+// wait for wg to finish with debug logging every 5 seconds. If maxCycles is -1, will wait indefinitely otherwise will terminate after maxCycles
+func MonitorWaitGroup(wg *sync.WaitGroup, maxCycles int, identifier ...string) {
+	if identifier == nil {
+		identifier = []string{""}
+	} else {
+		identifier = []string{identifier[0] + " "}
+	}
+	logrus.Debugf("CONCURRENCY:minedir %swaiting for internal wg", identifier)
 	var cycles int
 	done := make(chan bool)
 	go func() {
@@ -97,7 +104,7 @@ waitg:
 	for {
 		select {
 		case <-ticker.C:
-			logrus.Debug("CONCURRENCY:minedir waiting for internal wg")
+			logrus.Debugf("CONCURRENCY:minedir %swaiting for internal wg", identifier)
 			if maxCycles != -1 && cycles > maxCycles {
 				break waitg
 			}
@@ -106,5 +113,5 @@ waitg:
 		}
 		cycles++
 	}
-	logrus.Debug("CONCURRENCY:minedir internal wg finished, terminating miner branch")
+	logrus.Debugf("CONCURRENCY:minedir %s internal wg finished, terminating miner branch", strings.Join(identifier, ""))
 }
