@@ -90,7 +90,7 @@ func MonitorWaitGroup(wg *sync.WaitGroup, maxCycles int, wgCompleted chan struct
 	if identifier != nil {
 		id = strings.Join(identifier, "") + " "
 	}
-	logrus.Debugf("CONCURRENCY:minedir %swaiting for internal wg", id)
+	logrus.Debugf("WG:%swaiting for internal wg", id)
 	var cycles int
 	done := make(chan bool)
 	go func() {
@@ -103,7 +103,7 @@ waitg:
 	for {
 		select {
 		case <-ticker.C:
-			logrus.Debugf("CONCURRENCY:minedir %swaiting for internal wg", id)
+			logrus.Debugf("WG:%swaiting for internal wg", id)
 			if maxCycles != -1 && cycles > maxCycles {
 				break waitg
 			}
@@ -112,7 +112,7 @@ waitg:
 		}
 		cycles++
 	}
-	logrus.Debugf("CONCURRENCY:waitgroup %s finished", id)
+	logrus.Debugf("WG:waitgroup %sfinished", id)
 	if wgCompleted != nil {
 		close(wgCompleted)
 	}
