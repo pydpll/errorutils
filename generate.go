@@ -2,7 +2,6 @@ package errorutils
 
 import (
 	"errors"
-	"strings"
 	"sync"
 	"time"
 
@@ -85,25 +84,27 @@ func NewReport(msg string, lineRef string, o ...Option) *Details {
 }
 
 // blocking! wait for wg to finish with debug logging every 5 seconds. If maxCycles is -1, will wait indefinitely otherwise will terminate after maxCycles. Optional identifier for logging.
-func MonitorWaitGroup(wg *sync.WaitGroup, maxCycles int, wgCompleted chan struct{}, identifier ...string) {
-	var id string
-	if identifier != nil {
-		id = strings.Join(identifier, "") + " "
-	}
+func MonitorWaitGroup(wg *sync.WaitGroup, maxCycles int, wgCompleted chan struct{}, wgName string, id string) {
 	logrus.Debugf("WG:%swaiting for internal wg", id)
+	if id != "" {
+		id = id + " "
+	}
+	if wgName != "" {
+		wgName = " " + wgName
+	}
 	var cycles int
 	done := make(chan bool)
 	go func() {
 		wg.Wait()
 		close(done)
 	}()
-	ticker := time.NewTicker(5 * time.Second)
+	ticker := time.NewTicker(15 * time.Second)
 	defer ticker.Stop()
 waitg:
 	for {
 		select {
 		case <-ticker.C:
-			logrus.Debugf("WG:%swaiting for internal wg", id)
+			logrus.Debugf("WG:%swaiting for wg%s", id, wgName)
 			if maxCycles != -1 && cycles > maxCycles {
 				break waitg
 			}
@@ -112,7 +113,10 @@ waitg:
 		}
 		cycles++
 	}
-	logrus.Debugf("WG:waitgroup %sfinished", id)
+	if id != "" {
+		id = "for " + id
+	}
+	logrus.Debugf("WG:waitgroup %sfinished%s", wgName, id)
 	if wgCompleted != nil {
 		close(wgCompleted)
 	}
