@@ -84,13 +84,15 @@ func NewReport(msg string, lineRef string, o ...Option) *Details {
 }
 
 // blocking! wait for wg to finish with debug logging every 5 seconds. If maxCycles is -1, will wait indefinitely otherwise will terminate after maxCycles. Optional identifier for logging.
-func MonitorWaitGroup(wg *sync.WaitGroup, maxCycles int, wgCompleted chan struct{}, wgName string, id string) {
+func MonitorWaitGroup(wg *sync.WaitGroup, maxCycles int, wgCompleted chan struct{}, wgName, id string) {
 	logrus.Debugf("WG:%swaiting for internal wg", id)
+	idStr := ""
 	if id != "" {
-		id = id + " "
+		idStr = " " + id
 	}
+	wgNameStr := ""
 	if wgName != "" {
-		wgName = " " + wgName
+		wgNameStr = " " + wgName
 	}
 	var cycles int
 	done := make(chan bool)
@@ -104,7 +106,7 @@ waitg:
 	for {
 		select {
 		case <-ticker.C:
-			logrus.Debugf("WG:%swaiting for wg%s", id, wgName)
+			logrus.Debugf("WG:%swaiting for wg%s", idStr, wgNameStr)
 			if maxCycles != -1 && cycles > maxCycles {
 				break waitg
 			}
@@ -113,10 +115,7 @@ waitg:
 		}
 		cycles++
 	}
-	if id != "" {
-		id = "for " + id
-	}
-	logrus.Debugf("WG:waitgroup %sfinished%s", wgName, id)
+	logrus.Debugf("WG:waitgroup%sfinished%s", wgNameStr, idStr)
 	if wgCompleted != nil {
 		close(wgCompleted)
 	}
