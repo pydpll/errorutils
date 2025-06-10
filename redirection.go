@@ -31,6 +31,7 @@ func ToggleColor() (isColorfull bool) {
 
 func init() {
 	logrus.SetFormatter(customFormatter)
+	centralB_ch = make(chan activityEvent, 200)
 	//fix duplication issue
 	// logrus.AddHook(&writer.Hook{ // Send logs with level higher than warning to stderr
 	// 	Writer: os.Stderr,

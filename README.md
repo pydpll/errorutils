@@ -2,6 +2,8 @@
 
 Errorutils is a reusable optional functions error framework that extends the logrus package. It provides a simple and flexible way to instantiate custom error types with additional information, sets up a custom logger for better formatting, and provides descriptive one-line checks for errors.
 
+Additionally can help with debugging concurrency with tools for monitoring waitgroups and for announcing block execution with barkers. 
+
 ## Installation
 
 To use Errorutils in your Go project, you can install it using `go get`:
@@ -12,7 +14,7 @@ To use Errorutils in your Go project, you can install it using `go get`:
 
 ## Usage
 
-To use Errorutils in your project, you first need to import it. It's init funtion will make the custom formatter accessible through normal logrus entries.
+To use Errorutils in your project, you first need to import it. Its init function will make the custom formatter accessible through normal logrus entries.
 
 ```go
 package myPackage
@@ -21,14 +23,14 @@ import "github.com/pydpll/errorutils"
 
 ### When to use errorutils
 
-Errorutils enables error checking and handling at the location where the error is generated or captured. In general, our recommendation is to use `ExitOnFail()` in places where `logrus.Error()` could be used, `WarnOnFail()` provides notifications to users in cases where the program could continue operating. These functions are nil-error checks.
+Errorutils enables error checking and handling at the location where the error is generated or captured. In general, our recommendation is to use `ExitOnFail()` in places where `os.Exit` would be the handling solution, `WarnOnFail()` provides notifications to users in cases where the program could continue operating. These functions are nil-error checks.
 
 ### When not to use errorutils
 
 The functionality of this package is constrained to only handling failure errors. The following are some examples where the use of alternatives is encouraged:
 
 - In places where it makes more sense to return the error, use the common construct `if err != nil`.
-- When defered calls are necessary for cleanup or other tasks, use `panic()`. This library uses os.Exit().
+- When deferred calls are necessary for cleanup or other tasks, use `panic()`. This library uses `os.Exit()`.
 - In control flow scenarios where there should be conditional execution of keywords such as `continue` and `break` based on the error.
 - In code tests, do not replace any of the error and logging functionality of a testing object.
 - When Sharing information such as EOF should be not be handled with this custom type, some workarounds by wrapping errors `WithInner()` might work but it is not a guarantee (see next section example).
@@ -58,7 +60,7 @@ errorutils.LogFailures(err)
 errorutils.LogFailuresf(err, "other error info: %%s")
 errorutils.WarnOnFail(err)
 errorutils.WarnOnFailf(err, "additional info: %%s")
-errorutils.ExitonFail(err)
+errorutils.ExitOnFail(err)
 ```
 
 ### Handler functions and safe closer
@@ -83,7 +85,7 @@ func x() {
         indexWriter.Flush()
     }
 handleError:
-    // if file cannot be created or there is a writting error, stash the sequences
+    // if file cannot be created or there is a writing error, stash the sequences
     stashingErr := errorutils.HandleFailure(
                     err,
                     errorutils.Handler(func() *Details {
@@ -98,10 +100,31 @@ handleError:
                     errorutils.WithMsg(fmt.Sprintf("sequences file could not be created for %s at %s, a stash was ATTEMPTED as temporaryfile accessible with hash name %s", name, libLoc, sha1)),
                     errorutils.WithLineRef("uDIKN3XCREp"))
     // in this case format string must have a scaped string verb '%%s' to ensure WarnOnFailf will have a place to print error value.
-    errorutils.WarnOnFailf(stashingErr, fmt.Sprintf("Sequences for %s cound not be saved: %%s\nSkipping...", name), errorutils.WithLineRef("XqZsHJI8ABs"))
+    errorutils.WarnOnFailf(stashingErr, fmt.Sprintf("Sequences for %s could not be saved: %%s\nSkipping...", name), errorutils.WithLineRef("XqZsHJI8ABs"))
 }
 ```
-
+### Debugging concurrent issues
+Barkers are ticker-backed notification of code execution that will announce that the block is still executing. The user is meant to provide the start and end to any barker. 
+```go
+	barker_ch := make(chan struct{})
+    go errorutils.ActiveBarker("Descriptive_activity_tag","some_identifier", barker_ch)
+    {
+    // my activity to track, toilsome
+    }
+    barker_ch <- struct{}{}
+```
+Bakers have a centralized activity tracker that keeps the state of any running code block. If the second argument of any activeBarker is a path, the notifications will be arranged in a tree structure that helps debugging directory traversals or any other form or hierarchical structure. The central barker should be unquely launched and it's output managed either printing to screen or a file.
+```go
+//from main or other unique place
+go func() {
+	stateTree_ch := make(chan string)
+	go errorutils.CentralBarker(stateTree_ch, 60*time.Second)
+    //logic to handle values of stateTree_ch
+    //...
+    }()
+```
+MonitorWaitgroup is, similarly, a ticker backed debug printer for running waits. Just a wrapper over waitgroup to call instead of `wg.Wait()`.
+ 
 ## License
 
 Errorutils is released under MIT Licensing. see [LICENSE](LICENSE) for details.
