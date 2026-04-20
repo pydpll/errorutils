@@ -15,8 +15,8 @@ import (
 
 // Details is a custom error type that can be used to add additional information to an error message
 type Details struct {
-	lineRef  string //will only print if debug is enabled, use a random string instead of the line number
-	msg      string //encouraged to be a single line
+	lineRef  string // will only print if debug is enabled, use a random string instead of the line number
+	msg      string // encouraged to be a single line
 	exitcode int    // only set for terminating errors
 	altPrint string
 	inner    error
@@ -28,7 +28,7 @@ func (e *Details) Error() string {
 	}
 	m := fmt.Sprintf("error: %s", e.msg)
 	if e.inner != nil {
-		m += fmt.Sprintf("\t%v", e.inner)
+		m = fmt.Sprintf("%v: ", e.inner) + m
 	}
 	if logrus.IsLevelEnabled(logrus.DebugLevel) {
 		m += fmt.Sprintf("\tLineRef: %s\tExit Code: %d", e.lineRef, e.exitcode)
@@ -42,7 +42,6 @@ func (e *Details) Unwrap() error {
 
 func (e *Details) ExitCode() int {
 	return e.exitcode
-
 }
 
 func (e *Details) HasAltprint() bool {
@@ -112,11 +111,14 @@ func WithMsg(msg string) Option {
 
 //go:noinline
 func WithInner(err error) Option {
+	// when inner error already defined, it will be queued (last in, last out)
 	return func(e *Details) {
+		if e.inner != nil {
+			e.inner = New(e.inner, WithInner(err))
+		}
 		e.inner = err
 	}
 }
-
 
 type Handler func() *Details
 
