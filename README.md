@@ -104,7 +104,7 @@ handleError:
 }
 ```
 ### Debugging concurrent issues
-Barkers are ticker-backed notification of code execution that will announce that the block is still executing. The user is meant to provide the start and end to any barker. 
+Barkers are ticker-backed notification of code execution that will announce that a block is still active. The user is meant to provide the start and end to any barker. 
 ```go
 	barker_ch := make(chan struct{})
     go errorutils.ActiveBarker("Descriptive_activity_tag","some_identifier", barker_ch)

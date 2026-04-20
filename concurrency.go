@@ -14,7 +14,7 @@ import (
 
 //These tools should only be used for debugging.
 
-// blocking! wait for wg to finish with debug logging every 5 seconds. If maxCycles is -1, will wait indefinitely otherwise will terminate after maxCycles. Optional identifier for logging.
+// blocking! wait for wg to finish with debug logging every 15 seconds. If maxCycles is -1, will wait indefinitely otherwise will terminate after maxCycles. Optional identifier for logging.
 func MonitorWaitGroup(wg *sync.WaitGroup, maxCycles int, wgName, id string) {
 	logrus.Debugf("WG:%s waiting for wg", id)
 	idStr := ""
@@ -47,6 +47,18 @@ waitg:
 		cycles++
 	}
 	logrus.Debugf("WG:waitgroup%sfinished%s", wgNameStr, idStr)
+}
+
+// wrapper for channel send to catch panics
+func SnitchSend[T any](ch chan T, v T) (sent bool) {
+	defer func() {
+		if r := recover(); r != nil {
+			sent = false
+			fmt.Printf("SnitchSend: %+v\n", r)
+		}
+	}()
+	ch <- v
+	return true
 }
 
 var centralB_ch chan activityEvent
