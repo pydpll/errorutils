@@ -2,7 +2,7 @@
 
 Errorutils is a reusable optional functions error framework that extends the logrus package. It provides a simple and flexible way to instantiate custom error types with additional information, sets up a custom logger for better formatting, and provides descriptive one-line checks for errors.
 
-Additionally can help with debugging concurrency with tools for monitoring waitgroups and for announcing block execution with barkers. 
+Additionally can help with debugging concurrency with tools for monitoring waitgroups and for announcing block execution with "barkers". 
 
 ## Installation
 
@@ -21,11 +21,11 @@ package myPackage
 import "github.com/pydpll/errorutils"
 ```
 
-### When to use errorutils
+## When to use errorutils
 
 Errorutils enables error checking and handling at the location where the error is generated or captured. In general, our recommendation is to use `ExitOnFail()` in places where `os.Exit` would be the handling solution, `WarnOnFail()` provides notifications to users in cases where the program could continue operating. These functions are nil-error checks.
 
-### When not to use errorutils
+## When not to use errorutils
 
 The functionality of this package is constrained to only handling failure errors. The following are some examples where the use of alternatives is encouraged:
 
@@ -36,6 +36,9 @@ The functionality of this package is constrained to only handling failure errors
 - When Sharing information such as EOF should be not be handled with this custom type, some workarounds by wrapping errors `WithInner()` might work but it is not a guarantee (see next section example).
 - Recoverable panics or terminations that expect the defer stack to be executed should rely on built-in `panic()` instead.
 - The `Details` error type is not meant to be compared.
+## Options
+
+Options can be provided to add more information to errors. Take into account that withMsg will overwite error information, it is meant to be used sparingly. Use WithInner() instead to add information. `<inner:> error: <message>` 
 
 ### Creating a new error with line references
 
@@ -44,7 +47,7 @@ To add details to an error, use the `New` function. This function takes an error
 ```go
 //err is nil, otherErr is not
 detailed := errorutils.New(err, errorutils.WithExitCode(3), errorutils.WithLineRef("OKP8PK1CosD"), errorutils.WithInner(otherErr))
-// detailed is now showing the inner error otherErr.Error() as the message. Type information has been lost.
+// detailed is now showing the inner error otherErr.Error() as its message since err was nil.
 ```
 
 Errorutils provides a way to add line references to error values that are only printed when `logrus.DebugLevel` is enabled. Line references indicate the location in the code where the error occurred. Ideally, unique identifiers such as random strings are better to avoid outdating the reference. Alternatively assign the information to present the offending input or other useful information.
@@ -126,5 +129,4 @@ go func() {
 MonitorWaitgroup is, similarly, a ticker backed debug printer for running waits. Just a wrapper over waitgroup to call instead of `wg.Wait()`.
  
 ## License
-
 Errorutils is released under MIT Licensing. see [LICENSE](LICENSE) for details.
